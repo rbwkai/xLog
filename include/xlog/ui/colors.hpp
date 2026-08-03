@@ -22,13 +22,14 @@ const std::string YELLOW    = "\033[38;2;249;226;175m";
 const std::string GREEN     = "\033[38;2;166;227;161m";
 const std::string TEAL      = "\033[38;2;148;226;213m";
 const std::string SKY       = "\033[38;2;137;220;235m";
-const std::string SAPPHIRE = "\033[38;2;116;199;236m";
+const std::string SAPPHIRE  = "\033[38;2;116;199;236m";
 const std::string BLUE      = "\033[38;2;137;180;250m";
 const std::string LAVENDER  = "\033[38;2;180;190;254m";
 const std::string TEXT      = "\033[38;2;205;214;244m";
 const std::string SUBTEXT   = "\033[38;2;186;194;222m";
 const std::string OVERLAY2  = "\033[38;2;147;153;178m";
 const std::string OVERLAY1  = "\033[38;2;127;132;156m";
+const std::string OVERLAY0  = "\033[38;2;108;112;134m"; 
 
 } // namespace colors
 
