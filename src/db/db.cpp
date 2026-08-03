@@ -1,5 +1,7 @@
 #include "xlog/db.hpp"
-#include "xlog/math.hpp"
+#include "xlog/math/xp.hpp"
+#include "xlog/math/scoring.hpp"
+#include "xlog/math/calibration.hpp"
 #include "xlog/task_engine.hpp"
 #include <stdexcept>
 #include <iostream>

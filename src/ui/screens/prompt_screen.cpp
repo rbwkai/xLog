@@ -1,7 +1,7 @@
 #include "xlog/ui/screens/prompt_screen.hpp"
 #include "xlog/ui/colors.hpp"
 #include "xlog/ui/widgets.hpp"
-#include "xlog/math.hpp"
+#include "xlog/math/scoring.hpp"
 #include <iostream>
 #include <iomanip>
 

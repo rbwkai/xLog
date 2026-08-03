@@ -1,0 +1,22 @@
+# Build directory
+build/
+bin/
+
+# Compiled object files / libraries / executables
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+xlog
+
+# SQLite database files
+*.db
+*.sqlite3
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store

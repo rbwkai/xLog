@@ -64,10 +64,13 @@ double calculateStreakMultiplier(int streak_days) {
     return 1.0 + 0.05 * std::log(1.0 + static_cast<double>(streak_days) / 30.0);
 }
 
+double calculateBalance(double domain_score, double rating) {
+    if (rating <= 0.0) return 0.0;
+    return std::max(0.0, (rating - domain_score) / rating);
+}
+
 double calculateBalanceBonus(double domain_score, double rating) {
-    if (rating <= 0.0) return 1.0;
-    double balance = std::max(0.0, (rating - domain_score) / rating);
-    return std::min(1.4, 1.0 + 0.5 * balance);
+    return std::min(1.4, 1.0 + 0.5 * calculateBalance(domain_score, rating));
 }
 
 } // namespace math

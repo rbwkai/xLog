@@ -1,5 +1,6 @@
 #include "xlog/task_engine.hpp"
-#include "xlog/math.hpp"
+#include "xlog/math/xp.hpp"
+#include "xlog/math/calibration.hpp"
 #include <chrono>
 #include <ctime>
 #include <sstream>
@@ -133,8 +134,7 @@ void updateTaskPrioritiesAndSchedules(Database& db, User& user, const std::strin
         if (maj_sub_opt) {
             auto maj_dom_opt = db.getDomainById(maj_sub_opt->domain_id);
             if (maj_dom_opt) {
-                balance_val = math::calculateBalanceBonus(maj_dom_opt->score_cached, user.rating_current) - 1.0;
-                balance_val = std::max(0.0, balance_val);
+                balance_val = math::calculateBalance(maj_dom_opt->score_cached, user.rating_current);
             }
         }
 

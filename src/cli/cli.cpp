@@ -1,7 +1,7 @@
 #include "xlog/cli.hpp"
 #include "xlog/cli/fuzzy.hpp"
 #include "xlog/ui.hpp"
-#include "xlog/math.hpp"
+#include "xlog/math/xp.hpp"
 #include "xlog/task_engine.hpp"
 #include <iostream>
 #include <sstream>
