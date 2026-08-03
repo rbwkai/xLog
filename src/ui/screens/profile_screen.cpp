@@ -22,25 +22,28 @@ void renderProfile(Database& db, int64_t user_id) {
     User u = stats.user;
 
     std::string dim = colors::OVERLAY2;
-    std::string border_col = colors::OVERLAY0;
+    std::string border_col = colors::LAVENDER; // Matching Today screen border
     std::string it = colors::ITALIC;
-    std::string und = "\033[4m"; // Standard ANSI underline
+    std::string und = "\033[4m";
     std::string res = colors::RESET;
     std::string bld = colors::BOLD;
     std::string rc = getRankColor(u.rank_current);
 
-    // EXACTLY 38 dashes. 
-    // (1 left border + 1 space + 12 logo + 2 space + 20 text + 1 space + 1 right border = 38 total width)
-    std::cout << "\n" << border_col << "╭────────────────────────────────────╮\n" << res;
+    // EXACTLY 44 columns total width
+    std::cout << "\n" << border_col << "╭── Profile ───────────────────────────────╮\n" << res;
 
-    int text_col_width = 20; 
+    // Layout dimensions:
+    // 2 (│ ) + 12 (logo) + 2 (  ) + 26 (text) + 2 ( │) = 44 total width
+    int text_col_width = 26; 
 
     auto print_fastfetch_row = [&](const std::string& logo_part, const std::string& text_part, int text_vis_len) {
         int right_pad = text_col_width - text_vis_len;
+        if (right_pad < 0) right_pad = 0;
+        
         std::cout << border_col << "│ "
                   << colors::LAVENDER << bld << logo_part << res
                   << "  " << text_part
-                  << std::string(std::max(0, right_pad), ' ')
+                  << std::string(right_pad, ' ')
                   << border_col << " │\n" << res;
     };
 
@@ -58,43 +61,75 @@ void renderProfile(Database& db, int64_t user_id) {
     };
     std::vector<Line> text_lines;
 
-    // 1. Username (Rank colored, bold, italic, underlined)
-    text_lines.push_back({
-        rc + bld + it + und + u.username + res,
-        static_cast<int>(u.username.length())
-    });
+    // 1. Top padding line (aligns with logo line 1)
+    text_lines.push_back({"", 0});
 
-    // 2. Rating (Normal text left, Rank colored number right)
-    std::string r_left = "Rating:";
+    // 2. Username on Left, Rating Number on Right (Aligned with 2nd column)
+    int left_target_width = 13; // Exactly half of 26-column text section (matches 2nd domain column start)
+
+    std::string user_part = rc + bld + it + und + u.username + res;
+    int user_vis_len = static_cast<int>(u.username.length());
+
     std::string r_right = format_number(u.rating_current, 1);
-    int r_pad = text_col_width - r_left.length() - r_right.length();
-    
-    text_lines.push_back({
-        res + r_left + std::string(std::max(1, r_pad), ' ') + rc + r_right + res,
-        text_col_width
-    });
+    std::string rating_part = rc + bld + r_right + res;
+    int rating_vis_len = static_cast<int>(r_right.length());
 
-    // 5. Domains - pinned strictly to the absolute right edge
-    std::vector<std::string> dom_cols = {
+    int u_pad = left_target_width - user_vis_len;
+    if (u_pad < 1) u_pad = 1;
+
+    std::string row_user_rating = user_part + std::string(u_pad, ' ') + rating_part;
+    int row_user_rating_len = user_vis_len + u_pad + rating_vis_len;
+
+    text_lines.push_back({row_user_rating, row_user_rating_len});
+
+    // 3. Spacing line
+    text_lines.push_back({"", 0});
+
+    // 4. Domains (2 per row in grid format using distinct geometric shapes & domain colors)
+    const std::vector<std::string> dom_cols = {
         colors::FLAMINGO,
         colors::SKY,
         colors::LAVENDER,
         colors::PINK
     };
-    
-    for (size_t i = 0; i < stats.domains.size(); i++) {
-        std::string d_name = stats.domains[i].first.name;
-        std::string s_score = format_number(stats.domains[i].first.score_cached, 1);
-        std::string col = dom_cols[i % 4];
 
-        int space_pad = text_col_width - d_name.length() - s_score.length();
+    const std::vector<std::string> shapes = {
+        "◆ F:", // Diamond
+        "▲ I:", // Triangle
+        "■ P:", // Square
+        "✦ A:"  // Four-pointed star
+    };
+
+    auto make_domain_cell = [&](size_t idx) {
+        if (idx >= stats.domains.size()) {
+            return std::make_pair(std::string(""), 0);
+        }
+        std::string col = dom_cols[idx % dom_cols.size()];
+        std::string shape = shapes[idx % shapes.size()];
+        std::string score_str = format_number(stats.domains[idx].first.score_cached, 1);
+
+        // Visual: Colored shape + space + dimmed score
+        std::string cell_text = col + shape + res + " " + dim + score_str + res;
+        int vis_len = 5 + static_cast<int>(score_str.length());
+        
+        return std::make_pair(cell_text, vis_len);
+    };
+
+    // Render domains two per row dynamically
+    for (size_t i = 0; i < stats.domains.size(); i += 2) {
+        auto cell_left = make_domain_cell(i);
+        auto cell_right = make_domain_cell(i + 1);
+
+        int space_pad = left_target_width - cell_left.second;
         if (space_pad < 1) space_pad = 1;
 
-        std::string line_str = col + bld + d_name + res + std::string(space_pad, ' ') + dim + s_score + res;
-        text_lines.push_back({line_str, text_col_width});
+        std::string row_text = cell_left.first + std::string(space_pad, ' ') + cell_right.first;
+        int row_vis_len = cell_left.second + space_pad + cell_right.second;
+
+        text_lines.push_back({row_text, row_vis_len});
     }
 
-    // Print composed section
+    // Render side-by-side with Fastfetch ASCII logo
     size_t total_rows = std::max(logo.size(), text_lines.size());
     for (size_t i = 0; i < total_rows; ++i) {
         std::string l_part = (i < logo.size()) ? logo[i] : "            ";
@@ -103,8 +138,8 @@ void renderProfile(Database& db, int64_t user_id) {
         print_fastfetch_row(l_part, t_part, t_vis);
     }
 
-    // Exactly 38 dashes
-    std::cout << border_col << "╰────────────────────────────────────╯\n" << colors::RESET;
+    // Bottom border (Exactly 44 total width)
+    std::cout << border_col << "╰──────────────────────────────────────────╯\n\n" << colors::RESET;
 }
 
 } // namespace ui
