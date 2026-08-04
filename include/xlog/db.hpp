@@ -38,10 +38,12 @@ public:
     std::optional<Task> getTaskById(int64_t task_id);
     std::optional<Task> getTaskByName(int64_t user_id, const std::string& name);
     std::vector<Task> getAllTasks(int64_t user_id);
+    std::vector<Task> getAllTasksIncludingPaused(int64_t user_id);
     std::vector<Task> getTodayTasks(int64_t user_id);
     std::vector<Task> getBoredTasks(int64_t user_id);
     std::vector<Task> getQuickTasks(int64_t user_id);
     void updateTask(const Task& task);
+    void setTaskStatus(int64_t task_id, const std::string& status);
 
     // Completions & Engine Pipeline
     void recordCompletion(TaskCompletion& completion, Task& task, User& user);

@@ -30,10 +30,10 @@ RecalibrationResult recalibrateDifficulty(double cr_old, double d_old, double d_
 }
 
 double calculatePriority(double priority_base, int days_overdue, double balance_val, int days_stale) {
-    double w1 = 0.40;
-    double w2 = 0.30;
-    double w3 = 0.20;
-    double w4 = 0.10;
+    double w1 = 0.70;
+    double w2 = 0.19;
+    double w3 = 0.08;
+    double w4 = 0.03;
 
     double u_debt = (days_overdue > 0) ? (1.0 - std::exp(-0.6 * days_overdue)) : 0.0;
     double n_d = std::min(1.0, 1.2 * balance_val);

@@ -48,13 +48,11 @@ void renderToday(Database& db, int64_t user_id) {
         return;
     }
 
-    bool is_first = true;
-
+    bool first = true;
     for (const auto& t : tasks) {
-        bool is_high_priority = t.priority_current > 0.70;
         bool is_quick_task    = t.difficulty_current <= 15.0;
 
-        // Safely fetch Subdomain to determine the correct domain color
+        // Safely fetch Subdomain to determine the correct domain color and shape
         int64_t domain_id = 0;
         if (t.major_subdomain_id > 0) {
             std::optional<Subdomain> sub = db.getSubdomainById(t.major_subdomain_id);
@@ -67,34 +65,36 @@ void renderToday(Database& db, int64_t user_id) {
 
         std::cout << border_color << "│ " << colors::RESET;
 
-        // 1. Bullet / Urgent Cue (2 chars) — styled by domain color
-        if (is_first) {
-            std::cout << bullet_color << colors::BOLD << "✦ " << colors::RESET; // Top focus objective
-            is_first = false;
-        } else if (is_high_priority) {
-            std::cout << bullet_color << colors::BOLD << "▲ " << colors::RESET; // High priority indicator
-        } else {
-            std::cout << bullet_color << "▪ " << colors::RESET; // Standard task bullet
-        }
+        // 1. Bullet (2 chars) — styled by domain color & shape
+        std::cout << bullet_color << "▪ " << colors::RESET; 
 
         // 2. Task Name (24 chars fixed width)
         std::string name_formatted = fitText(t.name, 24);
-        if (is_high_priority) {
-            std::cout << colors::BOLD << colors::TEXT << name_formatted << colors::RESET;
-        } else {
+        if(first){
+            std::cout << colors::TEXT << colors::UNDERLINE << name_formatted << colors::RESET;
+            first = false;
+        }else{
             std::cout << colors::TEXT << name_formatted << colors::RESET;
         }
 
-        // 3. Priority Number (6 chars: "p:0.85")
-        std::ostringstream p_stream;
-        p_stream << "p:" << std::fixed << std::setprecision(2) << t.priority_current;
+        // 3. Priority Number (6 chars total: "p:0.85")
+        std::ostringstream p_num;
+        p_num << std::fixed << std::setprecision(2) << t.priority_current;
         
         std::cout << " "; // 1 char gap
-        if (is_high_priority) {
-            std::cout << colors::RED << colors::BOLD << p_stream.str() << colors::RESET;
+        
+        // Print "p:" part (keeping the muted style, preserving bold if high priority)
+        std::cout << muted_color << "p:" << colors::RESET;
+        
+        // Print numeric part with conditional color
+        if (t.priority_current >= 0.85) {
+            std::cout << colors::RED;
+        } else if (t.priority_current >= 0.50) {
+            std::cout << colors::GREEN;
         } else {
-            std::cout << muted_color << p_stream.str() << colors::RESET;
+            std::cout << colors::BLUE;
         }
+        std::cout << p_num.str() << colors::RESET;
 
         // 4. Duration Number (4 chars total: e.g., " 15m" or "120m")
         std::ostringstream d_stream;
@@ -102,7 +102,7 @@ void renderToday(Database& db, int64_t user_id) {
 
         std::cout << "   "; // 3 char gap to perfectly align the border
         if (is_quick_task) {
-            std::cout << colors::GREEN << colors::ITALIC << d_stream.str() << colors::RESET;
+            std::cout << colors::MAUVE << colors::ITALIC << d_stream.str() << colors::RESET;
         } else {
             std::cout << muted_color << d_stream.str() << colors::RESET;
         }

@@ -11,6 +11,7 @@ const std::string RESET     = "\033[0m";
 const std::string BOLD      = "\033[1m";
 const std::string DIM       = "\033[2m";
 const std::string ITALIC    = "\033[3m";
+const std::string UNDERLINE = "\033[4m";
 
 const std::string FLAMINGO  = "\033[38;2;242;205;205m";
 const std::string PINK      = "\033[38;2;245;194;231m";

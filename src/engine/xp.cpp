@@ -61,7 +61,7 @@ double rollCritMultiplier(int& crit_pity_k, bool& was_crit) {
 
 double calculateStreakMultiplier(int streak_days) {
     if (streak_days <= 0) return 1.0;
-    return 1.0 + 0.05 * std::log(1.0 + static_cast<double>(streak_days) / 30.0);
+    return 1.0 + 0.12 * std::log(1.0 + static_cast<double>(streak_days) / 30.0);
 }
 
 double calculateBalance(double domain_score, double rating) {

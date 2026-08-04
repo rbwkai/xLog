@@ -453,7 +453,7 @@ std::optional<Task> Database::getTaskById(int64_t task_id) {
 
 std::optional<Task> Database::getTaskByName(int64_t user_id, const std::string& name) {
     sqlite3_stmt* stmt = nullptr;
-    std::string sql = std::string("SELECT ") + TASK_FIELDS + "FROM tasks WHERE user_id = ? AND name LIKE ? AND status = 'active' LIMIT 1;";
+    std::string sql = std::string("SELECT ") + TASK_FIELDS + "FROM tasks WHERE user_id = ? AND name LIKE ? AND status != 'archived' LIMIT 1;";
     if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_int64(stmt, 1, user_id);
         std::string pattern = "%" + name + "%";
@@ -472,6 +472,20 @@ std::vector<Task> Database::getAllTasks(int64_t user_id) {
     std::vector<Task> result;
     sqlite3_stmt* stmt = nullptr;
     std::string sql = std::string("SELECT ") + TASK_FIELDS + "FROM tasks WHERE user_id = ? AND status = 'active';";
+    if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int64(stmt, 1, user_id);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            result.push_back(parseTaskFromStmt(stmt));
+        }
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+std::vector<Task> Database::getAllTasksIncludingPaused(int64_t user_id) {
+    std::vector<Task> result;
+    sqlite3_stmt* stmt = nullptr;
+    std::string sql = std::string("SELECT ") + TASK_FIELDS + "FROM tasks WHERE user_id = ? AND status != 'archived';";
     if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_int64(stmt, 1, user_id);
         while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -532,21 +546,44 @@ std::vector<Task> Database::getQuickTasks(int64_t user_id) {
 
 void Database::updateTask(const Task& task) {
     sqlite3_stmt* stmt = nullptr;
-    std::string sql = "UPDATE tasks SET difficulty_current = ?, cr_ema = ?, priority_current = ?, "
-                      "due_today = ?, status = ?, last_completed_date = ?, total_completions = ?, total_xp_earned = ? "
+    std::string sql = "UPDATE tasks SET name = ?, type = ?, major_subdomain_id = ?, minor_subdomain_id = ?, "
+                      "difficulty_current = ?, difficulty_original = ?, cr_ema = ?, priority_base = ?, "
+                      "priority_current = ?, period_days = ?, recurrence_mask = ?, due_today = ?, "
+                      "reward_unlock = ?, status = ?, last_completed_date = ?, total_completions = ?, total_xp_earned = ? "
                       "WHERE id = ?;";
     sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr);
-    sqlite3_bind_double(stmt, 1, task.difficulty_current);
-    sqlite3_bind_double(stmt, 2, task.cr_ema);
-    sqlite3_bind_double(stmt, 3, task.priority_current);
-    sqlite3_bind_int(stmt, 4, task.due_today ? 1 : 0);
-    sqlite3_bind_text(stmt, 5, task.status.c_str(), -1, SQLITE_TRANSIENT);
-    if (task.last_completed_date) sqlite3_bind_text(stmt, 6, task.last_completed_date->c_str(), -1, SQLITE_TRANSIENT); else sqlite3_bind_null(stmt, 6);
-    sqlite3_bind_int(stmt, 7, task.total_completions);
-    sqlite3_bind_double(stmt, 8, task.total_xp_earned);
-    sqlite3_bind_int64(stmt, 9, task.id);
+    sqlite3_bind_text(stmt, 1, task.name.c_str(), -1, SQLITE_TRANSIENT);
+    std::string type_str = taskTypeToString(task.type);
+    sqlite3_bind_text(stmt, 2, type_str.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 3, task.major_subdomain_id);
+    sqlite3_bind_int64(stmt, 4, task.minor_subdomain_id);
+    sqlite3_bind_double(stmt, 5, task.difficulty_current);
+    sqlite3_bind_double(stmt, 6, task.difficulty_original);
+    sqlite3_bind_double(stmt, 7, task.cr_ema);
+    sqlite3_bind_double(stmt, 8, task.priority_base);
+    sqlite3_bind_double(stmt, 9, task.priority_current);
+    if (task.period_days) sqlite3_bind_int(stmt, 10, *task.period_days); else sqlite3_bind_null(stmt, 10);
+    if (task.recurrence_mask) sqlite3_bind_int(stmt, 11, *task.recurrence_mask); else sqlite3_bind_null(stmt, 11);
+    sqlite3_bind_int(stmt, 12, task.due_today ? 1 : 0);
+    if (task.reward_unlock) sqlite3_bind_text(stmt, 13, task.reward_unlock->c_str(), -1, SQLITE_TRANSIENT); else sqlite3_bind_null(stmt, 13);
+    sqlite3_bind_text(stmt, 14, task.status.c_str(), -1, SQLITE_TRANSIENT);
+    if (task.last_completed_date) sqlite3_bind_text(stmt, 15, task.last_completed_date->c_str(), -1, SQLITE_TRANSIENT); else sqlite3_bind_null(stmt, 15);
+    sqlite3_bind_int(stmt, 16, task.total_completions);
+    sqlite3_bind_double(stmt, 17, task.total_xp_earned);
+    sqlite3_bind_int64(stmt, 18, task.id);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+}
+
+void Database::setTaskStatus(int64_t task_id, const std::string& status) {
+    sqlite3_stmt* stmt = nullptr;
+    std::string sql = "UPDATE tasks SET status = ? WHERE id = ?;";
+    if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, status.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(stmt, 2, task_id);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
 }
 
 void Database::recordCompletion(TaskCompletion& completion, Task& task, User& user) {

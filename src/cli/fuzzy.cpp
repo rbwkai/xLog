@@ -25,7 +25,7 @@ int levenshteinDistance(const std::string& s1, const std::string& s2) {
 
 std::string matchFuzzyCommand(const std::string& input) {
     std::vector<std::string> valid_cmds = {
-        "prompt", "today", "add", "done", "profile", "bored", "quick", "why", "quote", "setup", "help"
+        "prompt", "today", "add", "done", "edit", "pause", "tui", "profile", "bored", "quick", "why", "quote", "setup", "help"
     };
 
     std::string lower_in = input;
