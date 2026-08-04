@@ -1,78 +1,94 @@
 #include "xlog/ui/screens/prompt_screen.hpp"
 #include "xlog/ui/colors.hpp"
 #include "xlog/ui/widgets.hpp"
-#include "xlog/math/scoring.hpp"
+#include "xlog/db.hpp"
 #include <iostream>
-#include <iomanip>
-#include <sstream>
+#include <string>
+#include <vector>
+#include <optional>
 
 namespace xlog {
 namespace ui {
-
-static std::string fitText(const std::string& str, size_t target_len) {
-    if (str.length() > target_len) {
-        return str.substr(0, target_len - 3) + "...";
-    }
-    return str + std::string(target_len - str.length(), ' ');
-}
 
 void renderPrompt(Database& db, int64_t user_id) {
     auto u_opt = db.getUser();
     if (!u_opt) return;
     User u = *u_opt;
 
-    double pts_to_next = math::pointsToNextRank(u.rating_current);
-    Rank current_rank = math::ratingToRank(u.rating_current);
-    std::string next_rank_name = "Max Rank";
-    if (current_rank == Rank::Gray) next_rank_name = "Green";
-    else if (current_rank == Rank::Green) next_rank_name = "Cyan";
-    else if (current_rank == Rank::Cyan) next_rank_name = "Blue";
-    else if (current_rank == Rank::Blue) next_rank_name = "Violet";
-    else if (current_rank == Rank::Violet) next_rank_name = "Orange";
-    else if (current_rank == Rank::Orange) next_rank_name = "Red";
+    const std::string border_col = colors::LAVENDER;
+    const std::string res        = colors::RESET;
+    const std::string bld        = colors::BOLD;
+    const std::string itl        = colors::ITALIC;
+    const std::string rc         = getRankColor(u.rank_current);
 
-    auto q_opt = db.getRandomQuote(user_id);
+    const std::vector<std::string> dom_cols = {
+        colors::FLAMINGO,
+        colors::SKY,
+        colors::LAVENDER,
+        colors::PINK
+    };
 
-    const std::string border_color = colors::LAVENDER;
-    const std::string res          = colors::RESET;
-    const std::string bld          = colors::BOLD;
+    // --- Top Border (exactly 44 chars total width) ---
+    std::cout << border_col << "╭── Prompt ────────────────────────────────╮\n" << res;
 
-    std::cout << "\n" << border_color << "╭── Status & Quote ────────────────────────╮" << res << "\n";
+    // 1. Rank color-coded username
+    std::string user_str = rc + bld + itl + u.username + res;
+    int user_vis_len = static_cast<int>(u.username.length());
 
-    // Row 1: Username, Rank Badge, Streak
-    std::string rank_str = renderRankBadge(u.rank_current, u.rating_current);
-    std::string streak_str = "🔥 " + std::to_string(u.streak_days) + "d streak";
+    // 2. Highest priority task from today's list
+    auto tasks = db.getTodayTasks(user_id);
 
-    std::cout << border_color << "│ " << res
-              << colors::LAVENDER << bld << "⚡ " << colors::TEXT << u.username << res
-              << " " << rank_str << "  "
-              << colors::PEACH << streak_str << res;
+    std::string task_part = "";
+    int task_vis_len = 0;
 
-    int vis1 = 2 + static_cast<int>(u.username.length()) + 1 + static_cast<int>(u.rank_current.length()) + 6 + 2 + static_cast<int>(streak_str.length());
-    int pad1 = 40 - vis1;
-    if (pad1 < 0) pad1 = 0;
-    std::cout << std::string(pad1, ' ') << border_color << " │\n" << res;
+    if (!tasks.empty()) {
+        const auto& first_task = tasks[0];
 
-    // Row 2: Rating progress
-    if (pts_to_next > 0) {
-        std::ostringstream ss;
-        ss << std::fixed << std::setprecision(1) << pts_to_next << " Rating to " << next_rank_name;
-        std::string pts_str = ss.str();
-        std::cout << border_color << "│ " << res
-                  << colors::OVERLAY2 << fitText(pts_str, 40) << res
-                  << border_color << " │\n" << res;
+        // Resolve domain color from subdomain
+        int64_t domain_id = 0;
+        if (first_task.major_subdomain_id > 0) {
+            std::optional<Subdomain> sub = db.getSubdomainById(first_task.major_subdomain_id);
+            if (sub.has_value()) {
+                domain_id = sub->domain_id;
+            }
+        }
+        std::string bullet_color = dom_cols[domain_id % dom_cols.size()];
+
+        // Calculate available visible width for task name (40 max inner width)
+        // Format structure: " [" + "▪ " + task_name + "]" -> 5 fixed visible chars
+        int fixed_extra_vis = 1 + 1 + 2 + 1; // " [" (2) + "▪ " (2) + "]" (1)
+        int max_task_name_len = 40 - user_vis_len - fixed_extra_vis;
+        if (max_task_name_len < 1) max_task_name_len = 1;
+
+        std::string task_name = first_task.name;
+        if (task_name.length() > static_cast<size_t>(max_task_name_len)) {
+            if (max_task_name_len > 3) {
+                task_name = task_name.substr(0, max_task_name_len - 3) + "...";
+            } else {
+                task_name = task_name.substr(0, max_task_name_len);
+            }
+        }
+
+        task_part = " [" + bullet_color + "▪ " + res + colors::TEXT + task_name + res + "]";
+        task_vis_len = 1 + 1 + 2 + static_cast<int>(task_name.length()) + 1;
+    } else {
+        std::string no_task_msg = " [no tasks]";
+        task_part = colors::OVERLAY2 + no_task_msg + res;
+        task_vis_len = static_cast<int>(no_task_msg.length());
     }
 
-    // Row 3: Quote
-    if (q_opt) {
-        std::string quote_text = "💬 \"" + q_opt->text + "\"";
-        if (!q_opt->author.empty()) quote_text += " — " + q_opt->author;
-        std::cout << border_color << "│ " << res
-                  << colors::MAUVE << colors::ITALIC << fitText(quote_text, 40) << res
-                  << border_color << " │\n" << res;
-    }
+    // --- Content Row (40 visible chars padded) ---
+    int total_vis = user_vis_len + task_vis_len;
+    int pad = 40 - total_vis;
+    if (pad < 0) pad = 0;
 
-    std::cout << border_color << "╰──────────────────────────────────────────╯" << res << "\n\n";
+    std::cout << border_col << "│ " << res
+              << user_str << task_part
+              << std::string(pad, ' ')
+              << border_col << " │\n" << res;
+
+    // --- Bottom Border (exactly 44 chars total width) ---
+    std::cout << border_col << "╰──────────────────────────────────────────╯\n" << res;
 }
 
 } // namespace ui

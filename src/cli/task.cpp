@@ -53,8 +53,8 @@ void runAddTask(Database& db, int64_t user_id, const std::vector<std::string>& a
         t.user_id = user_id;
         t.name = name;
         t.type = TaskType::OneTime;
-        t.major_subdomain_id = all_subs[0].id;
-        t.minor_subdomain_id = (all_subs.size() > 1) ? all_subs[1].id : all_subs[0].id;
+        t.major_subdomain_id = all_subs[3].id;
+        t.minor_subdomain_id = all_subs[3].id;
         t.difficulty_current = 15.0;
         t.difficulty_original = 15.0;
         t.priority_base = 0.5;

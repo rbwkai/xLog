@@ -23,10 +23,10 @@ void renderProfile(Database& db, int64_t user_id) {
 
     std::string dim = colors::OVERLAY2;
     std::string border_col = colors::LAVENDER; // Matching Today screen border
-    std::string it = colors::ITALIC;
     std::string und = "\033[4m";
     std::string res = colors::RESET;
     std::string bld = colors::BOLD;
+    std::string itl = colors::ITALIC;
     std::string rc = getRankColor(u.rank_current);
 
     // EXACTLY 44 columns total width
@@ -67,7 +67,7 @@ void renderProfile(Database& db, int64_t user_id) {
     // 2. Username on Left, Rating Number on Right (Aligned with 2nd column)
     int left_target_width = 13; // Exactly half of 26-column text section (matches 2nd domain column start)
 
-    std::string user_part = rc + bld + it + und + u.username + res;
+    std::string user_part = rc + bld + itl + und + u.username + res;
     int user_vis_len = static_cast<int>(u.username.length());
 
     std::string r_right = format_number(u.rating_current, 1);
