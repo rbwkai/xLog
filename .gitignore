@@ -8,7 +8,6 @@ bin/
 *.so
 *.dylib
 *.exe
-xlog
 
 # SQLite database files
 *.db
