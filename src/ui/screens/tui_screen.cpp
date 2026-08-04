@@ -45,6 +45,7 @@ void renderTuiMenu(Database& db, int64_t user_id) {
         {" 9", "Complete Task",        colors::GREEN + colors::BOLD},
         {"10", "Edit Task",            colors::LAVENDER},
         {"11", "Pause / Resume Task",  colors::MAROON},
+        {"12", "Help Reference",       colors::PINK},
         {" 0", "Exit TUI",             colors::OVERLAY2}
     };
 

@@ -9,5 +9,6 @@
 #include "xlog/ui/screens/why_screen.hpp"
 #include "xlog/ui/screens/quote_screen.hpp"
 #include "xlog/ui/screens/tui_screen.hpp"
+#include "xlog/ui/screens/help_screen.hpp"
 
 #endif // XLOG_UI_SCREENS_HPP

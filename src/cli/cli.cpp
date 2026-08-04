@@ -46,20 +46,10 @@ void dispatchCommand(Database& db, const std::vector<std::string>& args) {
         runQuoteCommand(db, u.id, args);
     } else if (cmd == "setup") {
         runOnboarding(db);
+    } else if (cmd == "help") {
+        runHelpCommand();
     } else {
-        std::cout << "xLog Commands:\n"
-                  << "  xlog prompt   - fastfetch style status & quote\n"
-                  << "  xlog today    - view daily task list\n"
-                  << "  xlog add      - create a new task (or xlog add <name>)\n"
-                  << "  xlog done     - complete a task and earn XP\n"
-                  << "  xlog edit     - edit task properties\n"
-                  << "  xlog pause    - pause or resume a task\n"
-                  << "  xlog tui      - interactive menu for all functions & screens\n"
-                  << "  xlog profile  - detailed rank, domain progress & heatmap\n"
-                  << "  xlog bored    - view hobby tasks\n"
-                  << "  xlog quick    - view quick tasks (<15 min)\n"
-                  << "  xlog why      - system math & mechanics overview\n"
-                  << "  xlog quote    - display or manage motivational quotes\n";
+        runHelpCommand();
     }
 }
 

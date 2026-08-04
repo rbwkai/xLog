@@ -24,11 +24,13 @@ add_library(xlog_lib STATIC
     src/ui/screens/why_screen.cpp
     src/ui/screens/quote_screen.cpp
     src/ui/screens/tui_screen.cpp
+    src/ui/screens/help_screen.cpp
     src/cli/fuzzy.cpp
     src/cli/onboarding.cpp
     src/cli/task.cpp
     src/cli/quote.cpp
     src/cli/tui.cpp
+    src/cli/help.cpp
     src/cli/cli.cpp
 )
 

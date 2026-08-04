@@ -5,18 +5,40 @@
 namespace xlog {
 namespace ui {
 
+static std::string fitText(const std::string& str, size_t target_len) {
+    if (str.length() > target_len) {
+        return str.substr(0, target_len - 3) + "...";
+    }
+    return str + std::string(target_len - str.length(), ' ');
+}
+
 void renderQuote(Database& db, int64_t user_id) {
     auto q_opt = db.getRandomQuote(user_id);
-    std::cout << "\n";
+    const std::string border_color = colors::LAVENDER;
+    const std::string res          = colors::RESET;
+    const std::string dim          = colors::OVERLAY2;
+
+    std::cout << "\n" << border_color << "╭── Motivational Quote ────────────────────╮" << res << "\n";
+
     if (q_opt) {
-        std::cout << colors::MAUVE << colors::ITALIC << "💬 \"" << q_opt->text << "\"" << colors::RESET << "\n";
+        std::string quote_text = "💬 \"" + q_opt->text + "\"";
+        std::cout << border_color << "│ " << res
+                  << colors::MAUVE << colors::ITALIC << fitText(quote_text, 40) << res
+                  << border_color << " │\n" << res;
+
         if (!q_opt->author.empty()) {
-            std::cout << colors::OVERLAY2 << "  — " << q_opt->author << colors::RESET << "\n";
+            std::string author_text = "  — " + q_opt->author;
+            std::cout << border_color << "│ " << res
+                      << dim << fitText(author_text, 40) << res
+                      << border_color << " │\n" << res;
         }
     } else {
-        std::cout << colors::OVERLAY2 << "  No quotes found. Add quotes with 'xlog quote add \"text\" \"author\"'." << colors::RESET << "\n";
+        std::cout << border_color << "│ " << res
+                  << dim << fitText("No quotes found. Use 'xlog quote add'.", 40) << res
+                  << border_color << " │\n" << res;
     }
-    std::cout << "\n";
+
+    std::cout << border_color << "╰──────────────────────────────────────────╯" << res << "\n\n";
 }
 
 } // namespace ui

@@ -12,7 +12,7 @@ namespace cli {
 void runTuiCommand(Database& db, int64_t user_id) {
     while (true) {
         ui::renderTuiMenu(db, user_id);
-        std::cout << ui::colorText("Select Option (0-11): ", ui::colors::LAVENDER + ui::colors::BOLD);
+        std::cout << ui::colorText("Select Option (0-12): ", ui::colors::LAVENDER + ui::colors::BOLD);
 
         std::string choice;
         if (!std::getline(std::cin, choice)) {
@@ -46,6 +46,8 @@ void runTuiCommand(Database& db, int64_t user_id) {
             runEditTask(db, user_id, {});
         } else if (choice == "11") {
             runPauseTask(db, user_id, {});
+        } else if (choice == "12") {
+            ui::renderHelp();
         } else {
             std::cout << ui::colorText("Invalid option. Try again.\n", ui::colors::RED);
             continue;

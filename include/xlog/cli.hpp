@@ -7,6 +7,7 @@
 #include "xlog/cli/task.hpp"
 #include "xlog/cli/quote.hpp"
 #include "xlog/cli/tui.hpp"
+#include "xlog/cli/help.hpp"
 #include <string>
 #include <vector>
 
