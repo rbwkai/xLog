@@ -14,7 +14,9 @@ Standard task managers treat life as a flat, unorganized checklist. `xLog` is bu
 2. **4 Subdomains per Domain**: Specialized skills or focus areas within each domain (16 subdomains total, e.g., *Qur'an*, *Heuristics*, *Strength*, *Sketching*).
 3. **Dual Subdomain Attribution**: Every task contributes **70% of its XP** to its Major Subdomain and **30% of its XP** to its Minor Subdomain.
 4. **Harmonic Mean Global Rating**: Global Rating is computed using the **Harmonic Mean** of all 4 domain scores:
+ 
    $$\text{Rating} = \frac{4}{\sum_{i=1}^4 \frac{1}{\max(1.0, \text{Domain Score}_i)}}$$
+   
    *Why Harmonic Mean?* The harmonic mean is heavily weighted toward your lowest score. Neglecting a single domain will pull down your overall rank, encouraging well-rounded development.
 
 ---
@@ -96,6 +98,7 @@ $$\text{Score}_{\text{sub}} = 850 \times \log\left(1 + \frac{\text{XP}_{\text{ef
 
 ### 🍂 Soft Rust Decay
 Inactive subdomains experience exponential decay toward a 70% floor over a 90-day time constant:
+
 $$\text{XP}_{\text{eff}} = \text{XP}_{\text{raw}} \times \max\left(0.70, e^{-\frac{\text{Days Inactive}}{90}}\right)$$
 
 ---
