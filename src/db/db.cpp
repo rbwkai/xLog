@@ -549,7 +549,8 @@ void Database::updateTask(const Task& task) {
     std::string sql = "UPDATE tasks SET name = ?, type = ?, major_subdomain_id = ?, minor_subdomain_id = ?, "
                       "difficulty_current = ?, difficulty_original = ?, cr_ema = ?, priority_base = ?, "
                       "priority_current = ?, period_days = ?, recurrence_mask = ?, due_today = ?, "
-                      "reward_unlock = ?, status = ?, last_completed_date = ?, total_completions = ?, total_xp_earned = ? "
+                      "reward_unlock = ?, status = ?, last_completed_date = ?, total_completions = ?, total_xp_earned = ?, "
+                      "first_appeared_date = ?, started_at_date = ? "
                       "WHERE id = ?;";
     sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr);
     sqlite3_bind_text(stmt, 1, task.name.c_str(), -1, SQLITE_TRANSIENT);
@@ -570,7 +571,9 @@ void Database::updateTask(const Task& task) {
     if (task.last_completed_date) sqlite3_bind_text(stmt, 15, task.last_completed_date->c_str(), -1, SQLITE_TRANSIENT); else sqlite3_bind_null(stmt, 15);
     sqlite3_bind_int(stmt, 16, task.total_completions);
     sqlite3_bind_double(stmt, 17, task.total_xp_earned);
-    sqlite3_bind_int64(stmt, 18, task.id);
+    if (task.first_appeared_date) sqlite3_bind_text(stmt, 18, task.first_appeared_date->c_str(), -1, SQLITE_TRANSIENT); else sqlite3_bind_null(stmt, 18);
+    if (task.started_at_date) sqlite3_bind_text(stmt, 19, task.started_at_date->c_str(), -1, SQLITE_TRANSIENT); else sqlite3_bind_null(stmt, 19);
+    sqlite3_bind_int64(stmt, 20, task.id);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 }
